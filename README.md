@@ -28,6 +28,8 @@ This ComfyUI custom node package provides seamless integration with [Meituan's L
 | ✏️ **Image Edit** | Edit images using natural language instructions |
 | ⚡ **Performance Options** | CPU offload support and optional SageAttention acceleration |
 | 🔧 **Auto Model Detection** | Automatically detects LongCat models in your models directory |
+| 📥 **Auto Model Download** | Automatically downloads models from HuggingFace if not found locally |
+| 🔄 **Auto Dependency Install** | Automatically installs longcat-image package if not present |
 
 ### 📦 Nodes Included
 
@@ -63,24 +65,42 @@ Or install LongCat-Image directly:
 pip install git+https://github.com/meituan-longcat/LongCat-Image.git@main
 `
 
-#### Step 3: Download Models
+#### Step 3: Download Models (Optional - Auto Download Available)
 
-Download models from Hugging Face:
+> **💡 Note:** Starting from v1.1, models are **automatically downloaded** when you first use a node. You can skip this step if you prefer auto-download.
 
-`bash
+**Model Storage Location:**
+```
+ComfyUI/
+└── models/
+    └── diffusion_models/
+        ├── LongCat-Image/          # Text-to-Image model
+        ├── LongCat-Image-Dev/      # Dev model (faster)
+        └── LongCat-Image-Edit/     # Image Editing model
+```
+
+**Available Models:**
+
+| Model | HuggingFace Repo | Description |
+|-------|------------------|-------------|
+| LongCat-Image | [meituan/LongCat-Image](https://huggingface.co/meituan/LongCat-Image) | Full text-to-image model (50 steps) |
+| LongCat-Image-Dev | [meituan/LongCat-Image-Dev](https://huggingface.co/meituan/LongCat-Image-Dev) | Faster model (28 steps) |
+| LongCat-Image-Edit | [meituan/LongCat-Image-Edit](https://huggingface.co/meituan/LongCat-Image-Edit) | Image editing model |
+
+**Manual Download (if needed):**
+
+```bash
 pip install "huggingface_hub[cli]"
 
 # Text-to-Image model
-huggingface-cli download meituan-longcat/LongCat-Image --local-dir ComfyUI/models/diffusion_models/LongCat-Image
+huggingface-cli download meituan/LongCat-Image --local-dir ComfyUI/models/diffusion_models/LongCat-Image
 
 # Dev model (faster, 28 steps)
-huggingface-cli download meituan-longcat/LongCat-Image-Dev --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Dev
+huggingface-cli download meituan/LongCat-Image-Dev --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Dev
 
 # Image Editing model
-huggingface-cli download meituan-longcat/LongCat-Image-Edit --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Edit
-`
-
-#### Step 4: Restart ComfyUI
+huggingface-cli download meituan/LongCat-Image-Edit --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Edit
+```
 
 ### 📝 Usage
 
@@ -160,6 +180,8 @@ Example workflows are available in the `example/` folder:
 | ✏️ **图像编辑** | 使用自然语言编辑图像 |
 | ⚡ **性能优化** | 支持 CPU 卸载和 SageAttention 加速 |
 | 🔧 **自动识别** | 自动检测模型目录中的 LongCat 模型 |
+| 📥 **自动下载模型** | 如果本地没有模型，自动从 HuggingFace 下载 |
+| 🔄 **自动安装依赖** | 如果没有安装 longcat-image 包，自动安装 |
 
 ### 📦 包含节点
 
@@ -189,20 +211,42 @@ cd comfyui_meituan_image
 pip install -r requirements.txt
 `
 
-#### 第三步：下载模型
+#### 第三步：下载模型（可选 - 支持自动下载）
 
-`bash
+> **💡 提示：** 从 v1.1 版本开始，模型会在首次使用时**自动下载**。如果你希望自动下载，可以跳过这一步。
+
+**模型存放位置：**
+```
+ComfyUI/
+└── models/
+    └── diffusion_models/
+        ├── LongCat-Image/          # 文生图模型
+        ├── LongCat-Image-Dev/      # 开发版模型（更快）
+        └── LongCat-Image-Edit/     # 图像编辑模型
+```
+
+**可用模型：**
+
+| 模型 | HuggingFace 仓库 | 说明 |
+|------|------------------|------|
+| LongCat-Image | [meituan/LongCat-Image](https://huggingface.co/meituan/LongCat-Image) | 完整文生图模型（50步） |
+| LongCat-Image-Dev | [meituan/LongCat-Image-Dev](https://huggingface.co/meituan/LongCat-Image-Dev) | 快速版模型（28步） |
+| LongCat-Image-Edit | [meituan/LongCat-Image-Edit](https://huggingface.co/meituan/LongCat-Image-Edit) | 图像编辑模型 |
+
+**手动下载（可选）：**
+
+```bash
 pip install "huggingface_hub[cli]"
 
 # 文生图模型
-huggingface-cli download meituan-longcat/LongCat-Image --local-dir ComfyUI/models/diffusion_models/LongCat-Image
+huggingface-cli download meituan/LongCat-Image --local-dir ComfyUI/models/diffusion_models/LongCat-Image
 
 # 开发版模型（更快，28步）
-huggingface-cli download meituan-longcat/LongCat-Image-Dev --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Dev
+huggingface-cli download meituan/LongCat-Image-Dev --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Dev
 
 # 图像编辑模型
-huggingface-cli download meituan-longcat/LongCat-Image-Edit --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Edit
-`
+huggingface-cli download meituan/LongCat-Image-Edit --local-dir ComfyUI/models/diffusion_models/LongCat-Image-Edit
+```
 
 #### 第四步：重启 ComfyUI
 

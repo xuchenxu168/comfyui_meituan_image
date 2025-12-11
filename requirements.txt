@@ -9,4 +9,5 @@ safetensors>=0.6.2
 peft>=0.18.0
 
 # The actual LongCat-Image package needs to be installed from the repo
+# If this fails, the node will auto-install it on load (see __init__.py)
 longcat-image @ git+https://github.com/meituan-longcat/LongCat-Image.git@main

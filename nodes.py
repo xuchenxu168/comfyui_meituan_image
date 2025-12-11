@@ -6,12 +6,74 @@ import torch
 import folder_paths
 import os
 
+# HuggingFace model repository mapping
+LONGCAT_MODEL_REPOS = {
+    "LongCat-Image": "meituan/LongCat-Image",
+    "LongCat-Image-Edit": "meituan/LongCat-Image-Edit",
+    "LongCat-Image-Dev": "meituan/LongCat-Image-Dev",
+}
+
+# Available models for download
+LONGCAT_DOWNLOADABLE_MODELS = list(LONGCAT_MODEL_REPOS.keys())
+
+
+def check_and_download_model(model_name: str) -> str:
+    """
+    Check if the model exists locally, if not download from HuggingFace.
+    Returns the local path to the model.
+    """
+    # Default download directory
+    download_dir = os.path.join(folder_paths.models_dir, "diffusion_models")
+    os.makedirs(download_dir, exist_ok=True)
+    
+    model_path = os.path.join(download_dir, model_name)
+    
+    # Check if model already exists locally
+    if os.path.exists(model_path) and os.path.isdir(model_path):
+        # Verify it has the required files
+        transformer_path = os.path.join(model_path, "transformer")
+        if os.path.exists(transformer_path):
+            print(f"[LongCat] Model '{model_name}' found locally at: {model_path}")
+            return model_path
+    
+    # Model not found, need to download
+    if model_name not in LONGCAT_MODEL_REPOS:
+        raise ValueError(f"Unknown model '{model_name}'. Available models: {list(LONGCAT_MODEL_REPOS.keys())}")
+    
+    repo_id = LONGCAT_MODEL_REPOS[model_name]
+    print(f"[LongCat] Model '{model_name}' not found locally. Downloading from HuggingFace: {repo_id}")
+    
+    try:
+        from huggingface_hub import snapshot_download
+        
+        # Download the model
+        snapshot_download(
+            repo_id=repo_id,
+            local_dir=model_path,
+            local_dir_use_symlinks=False,
+            resume_download=True,
+        )
+        print(f"[LongCat] Model '{model_name}' downloaded successfully to: {model_path}")
+        return model_path
+        
+    except ImportError:
+        raise ImportError(
+            "huggingface_hub is required for model download. "
+            "Install it with: pip install huggingface_hub"
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to download model '{model_name}' from {repo_id}: {e}")
+
+
 @comfytype(io_type="LONGCAT_PIPE")
 class LongCatPipe(ComfyTypeIO):
     Type = dict
 
 def get_available_longcat_models():
-    models = []
+    # Start with downloadable models (will be auto-downloaded if selected)
+    models = list(LONGCAT_DOWNLOADABLE_MODELS)
+    
+    # Add locally existing models
     base_paths = [
         os.path.join(folder_paths.models_dir, "diffusion_models"),
         os.path.join(folder_paths.models_dir, "checkpoints"),
@@ -29,7 +91,12 @@ def get_available_longcat_models():
                             models.append(item)
         except OSError:
             continue
-    return sorted(list(set(models))) if models else ["(manual path)"]
+    
+    # Add manual path option at the end
+    if "(manual path)" not in models:
+        models.append("(manual path)")
+    
+    return models
 
 
 class MeituanLongCatLoader(io.ComfyNode):
@@ -59,13 +126,25 @@ class MeituanLongCatLoader(io.ComfyNode):
         except ImportError as e:
             raise ImportError(f"LongCat-Image not installed: {e}")
         
-        model_path = custom_model_path if model_name == "(manual path)" or not model_name else model_name
-        if not model_path:
-            raise ValueError("Model path required")
+        # Determine model path
+        if model_name == "(manual path)" or not model_name:
+            model_path = custom_model_path
+            if not model_path:
+                raise ValueError("Model path required when using manual path option")
+        else:
+            model_path = model_name
         
+        # Handle absolute paths
         if os.path.isabs(model_path):
             checkpoint_dir = model_path
+            if not os.path.exists(checkpoint_dir):
+                raise ValueError(f"Model not found at path: {checkpoint_dir}")
+        # Check if it's a downloadable model
+        elif model_path in LONGCAT_MODEL_REPOS:
+            # Auto-download if not exists
+            checkpoint_dir = check_and_download_model(model_path)
         else:
+            # Search in local directories
             checkpoint_dir = None
             for base in [os.path.join(folder_paths.models_dir, "diffusion_models"), folder_paths.models_dir]:
                 p = os.path.join(base, model_path)
@@ -73,7 +152,7 @@ class MeituanLongCatLoader(io.ComfyNode):
                     checkpoint_dir = p
                     break
             if not checkpoint_dir:
-                raise ValueError(f"Model not found: {model_path}")
+                raise ValueError(f"Model not found: {model_path}. If this is a HuggingFace model, please use one of the supported models: {list(LONGCAT_MODEL_REPOS.keys())}")
         
         dtype_map = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}
         torch_dtype = dtype_map[dtype]
