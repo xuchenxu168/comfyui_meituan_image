@@ -1,23 +1,17 @@
 [project]
 name = "comfyui_meituan_image"
-description = "ComfyUI integration of the LongCat-Image pipeline"
-version = "1.0.0"
-license = {text = "Apache-2.0"}
-
-dependencies = [
-    "accelerate>=1.11.0",
-    "diffusers>=0.35.2", 
-    "transformers>=4.57.1",
-    "safetensors>=0.6.2",
-    "peft>=0.18.0",
-    "longcat-image @ git+https://github.com/meituan-longcat/LongCat-Image.git@main",
-]
+description = "Generate high-quality images from text prompts with excellent Chinese text rendering，Edit images using natural language instructions.."
+version = "1.2.0"
+license = {file = "LICENSE"}
+dependencies = []
 
 [project.urls]
-Repository = "https://github.com/meituan-longcat/LongCat-Image"
+Repository = "https://github.com/xuchenxu168/comfyui_meituan_image"
+"Bug Tracker" = "https://github.com/xuchenxu168/comfyui_meituan_image"
+#  Used by Comfy Registry https://registry.comfy.org
 
 [tool.comfy]
-PublisherId = "meituan"
-DisplayName = "ComfyUI Meituan Image (LongCat)"
+PublisherId = "xuchenxu168"
+DisplayName = "comfyui_meituan_image"
 Icon = ""
 includes = []
